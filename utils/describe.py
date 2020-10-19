@@ -1,37 +1,29 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May  2 13:51:33 2020
-
-@author: 薛
-"""
-
-
 import pandas as pd
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.figure as fig
-import os
 from scipy.optimize import curve_fit
 from scipy import stats
 from sklearn.metrics import r2_score
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
+from os.path import join as pjoin
 
 
 def gaussian(x, *param):
     return param[0] * np.exp(-(x - param[1])**2 / (2 * param[2]**2))
 
-
+out_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/images' 
+act_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/activation' 
+num_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/numerosity_unit' 
 # %%
 namelist = ['fc1_relu', 'fc2_relu', 'fc3']
 for name in namelist:
     
     numlist = np.asarray([i for i in range(1, 33)])
     actname = 'act_' + name + '.npy'
-    act = np.load(actname)
+    act = np.load(pjoin(act_path, actname))
     infoname = 'id80_' + name + '.npy'
-    info = np.load(infoname)
+    info = np.load(pjoin(num_path, infoname))
     info = pd.DataFrame(info)
     info.columns = ['nid', 'pn', 'r2', 'A', 'M', 'S', 'sim']
     loc = info.nid - 1
@@ -89,7 +81,7 @@ for name in namelist:
                     ax.legend(fontsize=10)
                 plt.errorbar(numlist, dfm, yerr=dferr, fmt='k', ecolor='black', elinewidth=2)
     picname = 'curve_ro_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
     
     
@@ -121,7 +113,7 @@ for name in namelist:
                     ax.legend(fontsize=10)
                 plt.errorbar(numlist, dfmn, yerr=dferr, fmt='k', ecolor='black', elinewidth=2)
     picname = 'curve_no_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
     
     
@@ -135,7 +127,7 @@ for name in namelist:
     for a,b in zip(bar.index, bar):
         plt.text(a, b, '%.0f'%b, ha='center', va='bottom', fontsize=20)
     picname = 'describe_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
 
 
@@ -184,7 +176,7 @@ for name in namelist:
                 r2 = r2_score(dfmn, gaussian(numlist**(1/3), *popt))
                 r2pow3.append(r2)
     picname = 'gaussian_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
 
 
@@ -203,7 +195,7 @@ for name in namelist:
     plt.ylabel('sigma', fontsize=30)
     ax.legend(fontsize=30)
     picname = 'sigma_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
 
 
@@ -233,5 +225,5 @@ for name in namelist:
     res3 = stats.ttest_rel(dfr2[dfr2['scale']==1]['r2'], dfr2[dfr2['scale']==4]['r2'])
     print('log', res1[1], 'pow1/2', res2[1], 'pow1/3', res3[1])
     picname = 'r2_' + name + '.png'
-    plt.savefig(picname)
+    plt.savefig(pjoin(out_path, picname))
     plt.close('all')
