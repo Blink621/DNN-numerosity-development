@@ -17,11 +17,11 @@ from sklearn.metrics import r2_score
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 
-
+# define the curve-fit function, the tuning of number is a gaussian
 def gaussian(x, *param):
     return param[0] * np.exp(-(x - param[1])**2 / (2 * param[2]**2))
 
-
+# the filename list of activation dataset
 filelist = ['act_fc1_relu.npy', 'act_fc2_relu.npy', 'act_fc3.npy', 'act_fc3_softmax.npy']
 
 
@@ -31,7 +31,7 @@ filelist = ['act_fc1_relu.npy', 'act_fc2_relu.npy', 'act_fc3.npy', 'act_fc3_soft
 # colorlist = ['red', 'blue', 'green']
 # labellist = ['dset1', 'dset2', 'dset3']
 
-numlist = np.asarray(range(1,33))
+numlist = np.asarray(range(1,33))  # define the number list (1-33)
 numlist = np.asarray(numlist)
 for filename in filelist:
     act = np.load(filename)
@@ -40,7 +40,7 @@ for filename in filelist:
         for i in range(np.shape(act)[2]):
             for j in range(np.shape(act)[3]):
                 exloc.append([fmap, i, j])
-
+    
     # if not os.path.exists(filename):
     #     os.makedirs(filename)
     
@@ -74,9 +74,10 @@ for filename in filelist:
         
         dfm = df.groupby(df['num']).mean()['act']
         dfmn = (dfm - dfm.min()) / (dfm.max() - dfm.min())
+        # fit the gaussian curve
         try:
             popt, pcov = curve_fit(gaussian, np.log2(numlist), dfmn, p0=[15, 15, 15], bounds=([0, 0, 0], [np.inf, 33, np.inf]), maxfev=5000000)
-            r2 = r2_score(dfmn, gaussian(np.log2(numlist), *popt))
+            r2 = r2_score(dfmn, gaussian(np.log2(numlist), *popt))  # calculate the r2 score
             actnum = []
             actnumn = []
             for index in range(3):
@@ -86,6 +87,10 @@ for filename in filelist:
                 actnum.append(dfnum)
                 actnumn.append(dfnumn)
             sim = (np.corrcoef(actnum).sum() - 3) / 6
+            # define the columns, nid: the neure id, pn: prefered number of neure, 
+            # r2: the goodness of gaussian curve fit, A: the applitude of gaussian, 
+            # M: the center of gaussian, S: the various of gaussian, 
+            # sim: the similarity of the tuning curve in three datasets
             infolist.append([nid, df['pn'].max(), r2, popt[0], popt[1], popt[2], sim])
         except:
             pass
