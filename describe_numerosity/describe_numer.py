@@ -12,7 +12,7 @@ from os.path import join as pjoin
 def gaussian(x, *param):
     return param[0] * np.exp(-(x - param[1])**2 / (2 * param[2]**2))
 
-out_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/images' 
+out_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/images/numer' 
 act_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/activation' 
 num_path = '/nfs/s2/userhome/zhouming/workingdir/numerosity/out/numerosity_unit' 
 # %% prepare columns

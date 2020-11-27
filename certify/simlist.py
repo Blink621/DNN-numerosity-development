@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 27 18:01:39 2020
+Created on Sat May  2 13:51:33 2020
 
 @author: 薛
 """
 
-import os
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.figure as fig
+import os
 from scipy.optimize import curve_fit
 from scipy import stats
 from sklearn.metrics import r2_score
@@ -23,29 +24,29 @@ def gaussian(x, *param):
 
 
 # %%
-namelist = ['fc1_relu', 'fc2_relu', 'fc3', 'fc3_softmax']
-#namelist = ['fc3_softmax']
+namelist = ['fc1_relu', 'fc2_relu', 'fc3']
 for name in namelist:
 
     numlist = np.asarray([i for i in range(1, 33)])
-    actname = 'act_' + name + '.npy'
-    # actname = 'act_' + name + '.npy'
+    actname = 'act_' + name + '_test_simple.npy'
     act = np.load(actname)
-    infoname = 'id90_' + name + '.npy'
+    mcname = name + '80new_meancurve.npy'
+    mc = np.load(mcname)
+    infoname = 'id_' + name + '.npy'
     info = np.load(infoname)
     info = pd.DataFrame(info)
     info.columns = ['nid', 'pn', 'r2', 'A', 'M', 'S', 'sim']
     loc = info.nid - 1
-    name = name + '90new'
-    data = []
+    name = name + '80new'
     flag = 0
+    simlistall = []
     for index in loc:
         index = int(index)
         nid = info.nid[flag]
         
         col1 = act[:, index, 0, 0]
-        col2 = np.repeat([1,2,3], np.shape(act)[0] / 3, axis=0)
-        col3 = np.tile(np.repeat(numlist, 600), 3)
+        col2 = np.repeat([1,2,3,4], np.shape(act)[0] / 4, axis=0)
+        col3 = np.tile(np.repeat(numlist, 600), 4)
         col4 = np.repeat(info.pn[flag], np.shape(act)[0], axis=0)
         col5 = np.repeat(nid, np.shape(act)[0], axis=0)
         mat = np.zeros((np.shape(act)[0], 5))
@@ -57,14 +58,19 @@ for name in namelist:
         df = pd.DataFrame(mat)
         df.columns = ['act', 'dset', 'num', 'pn', 'id']
         
-        dflist = []
-        for dset in range(1,4):
-            dfBS = df.loc[df['dset'] == dset].copy()
-            dfmean = dfBS.groupby(dfBS['num']).mean()
-            dfactm = dfmean['act']
-            dfmn = (dfactm - dfactm.min()) / (dfactm.max() - dfactm.min())
-            dflist.append(dfactm)
-        data.append(np.mean(dflist, 0))
+        simlist = [info.pn[flag]]
+        actarray = [mc[flag]]
+        for k in range(4):
+            dfone = df[df['dset'] == k+1]
+            dfone = dfone.groupby(df['num']).mean()['act']
+            dfonen = (dfone - dfone.min()) / (dfone.max() - dfone.min())
+            actarray.append(dfonen)
+        rmatrix = np.corrcoef(actarray)
+        for xindex in range(1,5):
+            for yindex in range(xindex):
+                simlist.append(rmatrix[xindex, yindex])
+        simlistall.append(simlist)
+        
         flag += 1
-    namedata = name + '_meancurve.npy'
-    np.save(namedata, data)
+    fileanme = 'simlist2_' + name + '.npy'
+    np.save(fileanme, simlistall)
